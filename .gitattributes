@@ -1,0 +1,9 @@
+# Keep Windows line endings in start.bat wherever the project is checked out or
+# downloaded as a ZIP from GitHub: cmd.exe can misread batch files with Unix
+# line endings (labels and "goto" stop working).
+*.bat text eol=crlf
+
+# Everything else: let Git normalize text files.
+* text=auto
+*.png binary
+*.svg text
