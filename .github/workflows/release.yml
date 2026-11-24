@@ -1,0 +1,48 @@
+# Builds the two downloads and publishes them as a GitHub Release.
+#
+# Start it by pushing a version tag, e.g.  git tag v1.0.0  then  git push --tags
+# (or create the tag in GitHub Desktop / on github.com), or run it by hand from
+# the Actions tab ("Run workflow") with a version number.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (a tag of this name is created), e.g. v1.0.0"
+        required: true
+
+permissions:
+  contents: write   # needed to create the release; nothing else
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Build both ZIPs
+        shell: pwsh
+        env:
+          VERSION: ${{ github.event.inputs.version || github.ref_name }}
+        run: ./tools/build-release.ps1 -Version $env:VERSION
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.event.inputs.version || github.ref_name }}
+        run: |
+          $notes = @"
+          ## Which download?
+
+          - **Windows, no Python installed:** ``spirit-island-history-$env:VERSION-windows-with-python.zip``. It includes a portable Python: unzip it and double-click ``start.bat``.
+          - **Python 3.9+ already installed** (or not on Windows): ``spirit-island-history-$env:VERSION.zip``.
+
+          Your devices and game history stay in the ``data`` folder of the copy you use. To update, copy that folder into the new version.
+          "@
+          gh release create $env:VERSION (Get-ChildItem dist\*.zip).FullName --title "Spirit Island History $env:VERSION" --notes $notes --target $env:GITHUB_SHA

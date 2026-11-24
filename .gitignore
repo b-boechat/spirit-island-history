@@ -1,0 +1,31 @@
+# --- Personal data: never commit ----------------------------------------------
+# Settings, named devices (device IDs), saved game history and the local
+# Python path all live in data/. The server recreates the folder on start.
+/data/
+
+# The settings file's old location (the server moves it into data/ by itself).
+/config.json
+
+# --- Artwork --------------------------------------------------------------------
+# Spirit, aspect and adversary images belong to the game's makers. They're
+# downloaded from mindwanderer.net by the site itself ("Download artwork"),
+# and the server recreates the folders on start.
+/web/art/
+
+# --- Release builds -----------------------------------------------------------------
+# Output of tools\build-release.ps1, and a portable Python if one is ever
+# unzipped into the project folder (releases add it; the repository doesn't).
+/dist/
+/python/
+
+# --- Files exported from the site, if saved inside the project ------------------
+spirit-island-history-*.csv
+spirit-island-history-*.json
+
+# --- Python, temporary and system files ---------------------------------------
+__pycache__/
+*.py[cod]
+*.tmp
+Thumbs.db
+desktop.ini
+.DS_Store

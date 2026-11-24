@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Name check — Spirit Island History</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #222; }
+    h2 { margin-top: 2rem; font-size: 1.1rem; }
+    table { border-collapse: collapse; font-size: .9rem; }
+    td, th { border-bottom: 1px solid #ddd; padding: .25rem .75rem; text-align: left; }
+    td:first-child { font-family: ui-monospace, monospace; color: #666; }
+    td.n { text-align: right; color: #888; }
+    .muted { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Name check</h1>
+  <p class="muted">Every ID in your games and the name the site will show for it.
+    If a name looks wrong, add it to <code>web/js/names.js</code>. Use <code>?uid=…</code> for another device.</p>
+  <div id="out">Loading…</div>
+  <script type="module">
+    import { normalizeGames } from "../js/normalize.js";
+
+    const out = document.getElementById("out");
+    const { devices } = await (await fetch("/api/devices")).json();
+    const uid = new URLSearchParams(location.search).get("uid") || devices[0]?.uid;
+    const res = await (await fetch(`/api/games?uid=${encodeURIComponent(uid)}&cached=1`)).json();
+    const games = normalizeGames([{ device: { uid }, games: res.games ?? [] }]);
+
+    // category -> Map(id -> { name, count })
+    const cats = {};
+    const add = (cat, id, name) => {
+      if (!id) return;
+      const m = (cats[cat] ??= new Map());
+      const e = m.get(id) ?? { name, count: 0 };
+      e.count++;
+      m.set(id, e);
+    };
+    for (const g of games) {
+      g.spirits.forEach((s) => { add("Spirits", s.id, s.name); if (s.aspect) add("Aspects", s.aspect.id, s.aspect.name); });
+      for (const a of [g.adversary, g.supportingAdversary]) if (a) add("Adversaries", a.id, `${a.name}  ·  short: ${a.short}`);
+      add("Results", g.resultId, `${g.outcome.toUpperCase()} — ${g.reason}${g.abandoned ? " (abandoned)" : ""}`);
+      add("Blight cards", g.raw.blightCard, g.blight.card ? g.blight.card.name : "Not flipped");
+      if (g.scenario) add("Scenarios", g.scenario.id, g.scenario.name);
+      [...Object.values(g.powerCards.owned).flat(), ...g.powerCards.discard].forEach((c) => add("Power cards", c.id, c.name));
+    }
+
+    out.textContent = "";
+    const summary = document.createElement("p");
+    summary.textContent = `${games.length} games for device ${uid}.`;
+    out.append(summary);
+    for (const [cat, m] of Object.entries(cats)) {
+      const h = document.createElement("h2");
+      h.textContent = `${cat} (${m.size})`;
+      const table = document.createElement("table");
+      table.innerHTML = "<tr><th>ID</th><th>Shown as</th><th>Games</th></tr>";
+      for (const [id, e] of [...m].sort((a, b) => a[1].name.localeCompare(b[1].name))) {
+        const tr = table.insertRow();
+        tr.insertCell().textContent = id;
+        tr.insertCell().textContent = e.name;
+        const n = tr.insertCell(); n.textContent = e.count; n.className = "n";
+      }
+      out.append(h, table);
+    }
+    window.__games = games; // for inspection in the browser console
+  </script>
+</body>
+</html>
