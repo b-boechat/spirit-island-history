@@ -18,7 +18,6 @@ export const SORTS = {
   },
   difficulty: { label: "Difficulty", value: (g) => g.difficulty, firstDir: "desc" },
   result: { label: "Result", value: (g) => `${resultRank(g)}|${g.reason}`, firstDir: "desc" },
-  score: { label: "Score", value: (g) => g.score, firstDir: "desc" },
   turn: { label: "Turns", value: (g) => g.turn, firstDir: "asc" },
 };
 

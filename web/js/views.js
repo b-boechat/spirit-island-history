@@ -41,7 +41,6 @@ const COLUMNS = [
   { key: "adversary", cls: "col-adv" },
   { key: "difficulty", cls: "col-diff num", label: "Difficulty" },
   { key: "result", cls: "col-result" },
-  { key: "score", cls: "col-score num", label: "Score" },
   { key: "turn", cls: "col-turn num", label: "Turns" },
   { key: null, cls: "col-boards", header: "Boards", label: "Boards" },
 ];
@@ -94,7 +93,6 @@ function rowCells(game, showDevice) {
     result: h("div", { class: "cell-result" },
       resultBadge(game),
       game.abandoned ? null : h("span", { class: "reason" }, game.reason)),
-    score: dash(game.score),
     turn: dash(game.turn),
     boards: h("span", { class: "boards" }, boardsLabel(game)),
   };
